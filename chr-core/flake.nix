@@ -4,14 +4,15 @@
     chr: Constraint Handling Rules library
   '';
 
-  inputs = { nixpkgs.url = "github:NixOS/nixpkgs/master"; };
-  outputs = inputs@{ self, nixpkgs }:
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/master";
+    chr-data.url = "github:lllssskkk/chr?dir=chr-data";
+  };
+  outputs = inputs@{ self, nixpkgs, chr-data, ... }:
     let
       homepage = "https://github.com/atzedijkstra/chr";
       license = nixpkgs.lib.licenses.bsd3;
-      description = ''
-        chr: Constraint Handling Rules library.
-      '';
+
       # GENERAL
       supportedSystems =
         [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
@@ -33,8 +34,9 @@
             haskell-pkgs = pkgs.haskell.packages.ghc927;
 
             project = haskell-pkgs.developPackage {
-              name = "chr-data";
+              name = "chr-core";
               root = ./.;
+              overrides = self: super: { chr-data = chr-data; };
               modifier = drv:
                 pkgs.haskell.lib.addBuildTools drv (stdDevEnv.buildInputs);
             };
