@@ -3,12 +3,8 @@
   description =
     "chr-parse: the parse library (around uulib parsing) of Constraint Handling Rules library";
 
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/master";
-    chr.url = "github:lllssskkk/chr/master";
-
-  };
-  outputs = inputs@{ self, nixpkgs, chr, ... }:
+  inputs = { nixpkgs.url = "github:NixOS/nixpkgs/master"; };
+  outputs = inputs@{ self, nixpkgs, ... }:
     let
       homepage = "https://github.com/atzedijkstra/chr";
       license = nixpkgs.lib.licenses.bsd3;
