@@ -1,0 +1,64 @@
+{
+
+  description =
+    "chr-parse: the parse library (around uulib parsing) of Constraint Handling Rules library";
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/master";
+    chr.url = "github:lllssskkk/chr/master";
+
+  };
+  outputs = inputs@{ self, nixpkgs, chr, ... }:
+    let
+      homepage = "https://github.com/atzedijkstra/chr";
+      license = nixpkgs.lib.licenses.bsd3;
+      # GENERAL
+      supportedSystems =
+        [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
+      perSystem = nixpkgs.lib.genAttrs supportedSystems;
+      nixpkgsFor = system: nixpkgs.legacyPackages.${system};
+
+      mkDevEnv = system:
+        let pkgs = nixpkgsFor system;
+        in pkgs.stdenv.mkDerivation {
+          name = "Standard-Dev-Environment-with-Utils";
+          buildInputs = (with pkgs; [ ]);
+        };
+
+      haskell = rec {
+        projectFor = system:
+          let
+            pkgs = nixpkgsFor system;
+            stdDevEnv = mkDevEnv system;
+            haskell-pkgs = pkgs.haskellPackages;
+            #      Nix will automatically read the build-depends field in the *.cabal file to get the name of the dependencies
+            # and use the haskell packages provided in the configured package set provided by nix
+            project = haskell-pkgs.developPackage {
+              name = "chr-parse-0.1.0.0";
+              root = ./.;
+              modifier = drv:
+                pkgs.haskell.lib.addBuildTools drv (stdDevEnv.buildInputs);
+            };
+
+          in project;
+      };
+
+    in {
+      haskell = perSystem (system: (haskell.projectFor system));
+
+      devShells = perSystem (system: {
+        # Enter shell by "nix develop"
+        default = let project = self.haskell.${system};
+        in project.env.overrideAttrs (oldAttrs: {
+          shellHook = ''
+            ${oldAttrs.shellHook}
+            export PATH=$PATH:${project}/bin
+          '';
+        });
+      });
+
+      # To be executed by"nix build"
+      packages = perSystem (system: { default = self.haskell.${system}; });
+
+    };
+}
