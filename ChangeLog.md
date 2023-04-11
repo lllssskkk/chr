@@ -1,4 +1,4 @@
-# Revision history for chr
+# Revision history for chr-parse
 
 ## 0.1.0.0  -- YYYY-mm-dd
 
